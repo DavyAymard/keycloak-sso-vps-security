@@ -2,6 +2,7 @@
 .env
 *.env
 secrets.txt
+certs/*.key
 
 # Logs et données temporaires
 *.log
