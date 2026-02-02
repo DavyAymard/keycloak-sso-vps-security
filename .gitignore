@@ -1,0 +1,14 @@
+# Secrets et variables d'environnement (TRÈS IMPORTANT)
+.env
+*.env
+secrets.txt
+
+# Logs et données temporaires
+*.log
+logs/
+data/
+
+# Fichiers système et IDE
+.DS_Store
+.vscode/
+.idea/
