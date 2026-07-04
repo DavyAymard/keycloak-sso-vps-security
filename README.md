@@ -43,7 +43,7 @@ Navigateur ── HTTPS (8443) ──▶ Keycloak (Realm + MFA) ── JDBC ─�
 ├── configs/
 │   ├── docker-compose.yml # Orchestration Keycloak + PostgreSQL (HTTPS activé)
 │   └── .env.example       # Modèle des variables d'environnement à définir
-├── hardening/              # Durcissement du VPS (SSH, pare-feu, fail2ban)
+├── hardening/             # Durcissement du VPS (SSH, pare-feu, fail2ban)
 │   └── README.md
 ├── screenshots/           # Captures d'écran illustrant le tutoriel
 └── README.md

@@ -35,6 +35,7 @@ services:
       KC_HTTPS_CERTIFICATE_FILE: /etc/keycloak/certs/server.crt.pem
       KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/keycloak/certs/server.key.pem
       KC_HTTPS_PORT: 8443
+      KC_HEALTH_ENABLED: "true"
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     volumes:
@@ -45,7 +46,10 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8443"]
+      # Le endpoint /health/ready est servi sur le port de management 9000
+      # (KC_HEALTH_ENABLED), pas sur 8443. Pas de curl dans l'image officielle,
+      # d'où le recours à /dev/tcp (nécessite bash, présent dans l'image UBI).
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n' >&3 && grep -q '200 OK' <&3"]
       interval: 15s
       timeout: 5s
       retries: 10
