@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
     container_name: keycloak-db
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -16,6 +15,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak-server
+    restart: unless-stopped
     command: start-dev
     environment:
       KC_DB: postgres
@@ -23,10 +23,15 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_HOSTNAME_STRICT: "false"
+      KC_HTTPS_CERTIFICATE_FILE: /etc/keycloak/certs/server.crt.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/keycloak/certs/server.key.pem
+      KC_HTTPS_PORT: 8443
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ../certs:/etc/keycloak/certs:ro
     ports:
-      - "8080:8080"
+      - "8443:8443"
     depends_on:
       - postgres
     networks:
