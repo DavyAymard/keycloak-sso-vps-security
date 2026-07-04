@@ -1,21 +1,30 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
     container_name: keycloak-db
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - keycloak_network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:26.6.4
     container_name: keycloak-server
+    restart: unless-stopped
+    # start-dev : mode démo/lab (pas de cache optimisé, pas de build figé).
+    # Pour une mise en production réelle, utiliser `start --optimized` avec
+    # un KC_HOSTNAME explicite et, idéalement, un reverse proxy (Nginx/Traefik)
+    # devant Keycloak pour la terminaison TLS et le rate-limiting.
     command: start-dev
     environment:
       KC_DB: postgres
@@ -23,12 +32,28 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_HOSTNAME_STRICT: "false"
+      KC_HTTPS_CERTIFICATE_FILE: /etc/keycloak/certs/server.crt.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/keycloak/certs/server.key.pem
+      KC_HTTPS_PORT: 8443
+      KC_HEALTH_ENABLED: "true"
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ../certs:/etc/keycloak/certs:ro
     ports:
-      - "8080:8080"
+      - "8443:8443"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # Le endpoint /health/ready est servi sur le port de management 9000
+      # (KC_HEALTH_ENABLED), pas sur 8443. Pas de curl dans l'image officielle,
+      # d'où le recours à /dev/tcp (nécessite bash, présent dans l'image UBI).
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - keycloak_network
 

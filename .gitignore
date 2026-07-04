@@ -1,8 +1,10 @@
 # Secrets et variables d'environnement (TRÈS IMPORTANT)
 .env
 *.env
+!.env.example
 secrets.txt
-certs/*.key
+certs/*
+!certs/README.md
 
 # Logs et données temporaires
 *.log
