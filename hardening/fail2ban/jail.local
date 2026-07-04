@@ -1,0 +1,17 @@
+# Installation : copier ce fichier dans /etc/fail2ban/jail.local sur le VPS,
+# puis `systemctl restart fail2ban` et vérifier avec `fail2ban-client status sshd`.
+
+[DEFAULT]
+# Bannissement progressif : la durée augmente à chaque récidive
+bantime = 1h
+bantime.increment = true
+bantime.factor = 4
+findtime = 10m
+maxretry = 5
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
