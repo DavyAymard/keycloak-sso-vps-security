@@ -9,13 +9,22 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - keycloak_network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:26.6.4
     container_name: keycloak-server
     restart: unless-stopped
+    # start-dev : mode démo/lab (pas de cache optimisé, pas de build figé).
+    # Pour une mise en production réelle, utiliser `start --optimized` avec
+    # un KC_HOSTNAME explicite et, idéalement, un reverse proxy (Nginx/Traefik)
+    # devant Keycloak pour la terminaison TLS et le rate-limiting.
     command: start-dev
     environment:
       KC_DB: postgres
@@ -33,7 +42,14 @@ services:
     ports:
       - "8443:8443"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8443"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - keycloak_network
 
