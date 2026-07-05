@@ -54,6 +54,7 @@ Navigateur ── HTTPS (8443) ──▶ Keycloak (Realm + MFA) ── JDBC ─�
 - Un VPS sous Debian/Ubuntu avec Docker et Docker Compose installés.
 - `openssl` pour la génération des certificats.
 - Un accès administrateur (root/sudo) pour la gestion des permissions et du pare-feu.
+  
 
 ## Tutoriel de déploiement
 
@@ -111,7 +112,7 @@ en complément de la sécurisation applicative de Keycloak :
 - **SSH** (`hardening/ssh/99-hardening.conf`) : authentification par clé uniquement, connexion
   root désactivée, sessions inactives coupées.
 - **Fail2ban** (`hardening/fail2ban/jail.local`) : bannissement automatique et progressif des IP
-  après plusieurs échecs d'authentification SSH.
+  après plusieurs échecs d'authentification SSH. 
 
 Voir [`hardening/README.md`](hardening/README.md) pour les commandes d'installation et de
 vérification.
